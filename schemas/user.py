@@ -1,13 +1,13 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing_extensions import Annotated
-from pydantic.functional_validators import BeforeValidator
 
-PyObjectId = Annotated[str, BeforeValidator(str)]
+
+PyObjectId = Annotated[str, Field(alias="_id", default=None)]
 
 class UserSchema(BaseModel):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    id: Optional[PyObjectId] 
     email: EmailStr = Field(...)
     name: str = Field(...)
     password: str = Field(...)
