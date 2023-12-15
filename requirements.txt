@@ -10,4 +10,5 @@ passlib==1.7.4
 pydantic_core==2.10.1
 email-validator==2.1.0.post1
 pymongo==4.6.1
+python-multipart==0.0.6
 
