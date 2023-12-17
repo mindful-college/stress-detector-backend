@@ -22,9 +22,9 @@ class SettingSchema(BaseModel):
             "example": {
                 "email": "jiji@example.com",
                 "step_count": False,
-                "sleep_hours": False,
+                "sleep_hours": True,
                 "heart_rate": False,
-                "notification": False,
+                "notification": True,
                 "notification1": {
                     "isOn" : False,
                     "hours" : 0, # UTC 0~23

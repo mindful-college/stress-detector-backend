@@ -14,6 +14,7 @@ class UserSchema(BaseModel):
     uuid: str = Field(...)
     disabled: bool = Field(...)
     is_first_login: bool = Field(...)
+    points: int = Field(...)
 
     class Config:
         json_schema_extra = {
@@ -24,5 +25,6 @@ class UserSchema(BaseModel):
                 "uuid": "jiji-uuid",
                 "disabled": False,
                 "is_first_login": True,
+                "points": 0,
             }
         }
