@@ -55,6 +55,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app = FastAPI()
 user_collection = db.get_collection("user")
+setting_collection = db.get_collection("setting")
 
 def verify_password(plain_password, hashed_password) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -144,13 +145,6 @@ async def sign_up(
     request : Request
 ):
     sign_up_user: SingUpUser = await request.json()
-    email_count = user_collection.count_documents({"email" : sign_up_user["email"]})
-    if email_count > 0:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This email address is already in use",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
     if len(sign_up_user["password"]) < 8 or sign_up_user["password"] != sign_up_user["password_check"] or sign_up_user["uuid"] == "":
         raise HTTPException(
@@ -159,8 +153,16 @@ async def sign_up(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    email_count = user_collection.count_documents({"email" : sign_up_user["email"]})
+    if email_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This email address is already in use",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     uuid_count = user_collection.count_documents({"uuid" : sign_up_user["uuid"]})
-    print(uuid_count)
+    
     if uuid_count >= 3:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -173,9 +175,34 @@ async def sign_up(
         "password": get_password_hash(sign_up_user["password"]),
         "name" : sign_up_user["name"],
         "uuid" : sign_up_user["uuid"],
-        "disabled" : False
+        "disabled" : False,
+        "is_first_login" : True,
     }
     user_collection.insert_one(processed_user)
+
+    default_setting = {
+        "email": sign_up_user["email"],
+        "step_count": False,
+        "sleep_hours": False,
+        "heart_rate": False,
+        "notification": False,
+        "notification1": {
+            "isOn" : False,
+            "hours" : 0,
+            "minutes" : 0,
+        },
+        "notification2": {
+            "isOn" : False,
+            "hours" : 0,
+            "minutes" : 0,
+        },
+        "notification3": {
+            "isOn" : False,
+            "hours" : 0,
+            "minutes" : 0,
+        },
+    }
+    setting_collection.insert_one(default_setting)
 
 
 @router.post("/v1/signout", tags=["users"])

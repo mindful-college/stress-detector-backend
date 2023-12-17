@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field
 from typing_extensions import Annotated
 
 
@@ -13,6 +13,7 @@ class UserSchema(BaseModel):
     password: str = Field(...)
     uuid: str = Field(...)
     disabled: bool = Field(...)
+    is_first_login: bool = Field(...)
 
     class Config:
         json_schema_extra = {
@@ -21,6 +22,7 @@ class UserSchema(BaseModel):
                 "name": "jiji",
                 "password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
                 "uuid": "jiji-uuid",
-                "disabled": False
+                "disabled": False,
+                "is_first_login": True,
             }
         }
