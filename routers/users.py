@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+from jose import jwt
 from pydantic import BaseModel
 from passlib.context import CryptContext
 
@@ -11,9 +11,8 @@ from dotenv import load_dotenv
 import os
 from fastapi import APIRouter, Request
 from schemas import user
-from database import db
-from fastapi_jwt_auth import AuthJWT
-import redis
+from database import db, redis_client
+from common.token import verify_token
 
 load_dotenv()
 router = APIRouter()
@@ -21,19 +20,7 @@ router = APIRouter()
 ALGORITHM = os.getenv("ALGORITHM")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS"))
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
-
-redis_client = redis.Redis(
-  host=REDIS_HOST,
-  port=REDIS_PORT,
-  password=REDIS_PASSWORD)
-
-redis_client.set('example_key', 'example_value')
-value = redis_client.get('example_key')
-print(f'The value for "example_key" is: {value.decode("utf-8")}')
 
 class Token(BaseModel):
     access_token: str
@@ -83,27 +70,6 @@ def create_access_token(data: dict, expires_delta: timedelta) -> str:
     return encoded_jwt
 
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> SingInUser:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-
-    except JWTError:
-        raise credentials_exception
-    user = user_collection.find_one({"email" : email})
-
-    if user is None or user["disabled"] is True:
-        raise credentials_exception
-    return user
-
 @router.post("/token", response_model=Token, tags=["users"])
 @router.post("/v1/signin", response_model=Token, tags=["users"])
 def login_for_access_token(
@@ -121,24 +87,9 @@ def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user["email"]}, expires_delta=access_token_expires
     )
-    if redis_client.get(access_token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
     
     return {"access_token": access_token, "token_type": "bearer"}
 
-
-@router.get("/v1/users/me", response_model=SingInUser, tags=["users"])
-def read_users_me(
-    current_user: Annotated[SingInUser, Depends(get_current_user)]
-):
-    return {
-        "email": current_user["email"],
-        "name": current_user["name"],
-    }
 
 @router.post("/v1/signup", status_code=status.HTTP_201_CREATED, tags=["users"])
 async def sign_up(
@@ -206,6 +157,13 @@ async def sign_up(
 
 
 @router.post("/v1/signout", tags=["users"])
-def expire_token(Authorize: AuthJWT = Depends()):
-    # Todo : Redis
-    print("signout")
+async def expire_token(token: Annotated[str, Depends(oauth2_scheme)]):
+    token_key = 'jwt_blacklist_' + token
+    redis_client.set(token_key, token, ex=2592000)
+
+
+@router.post("/v1/me", tags=["users"])
+async def expire_token(token: Annotated[str, Depends(oauth2_scheme)]):
+    if not verify_token(token):
+        return
+    # do something
