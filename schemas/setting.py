@@ -12,6 +12,7 @@ class SettingSchema(BaseModel):
     step_count: bool = Field(...)
     sleep_hours: bool = Field(...)
     heart_rate: bool = Field(...)
+    social_media_usage: bool = Field(...)
     notification: bool = Field(...)
     notification1: object = Field(...)
     notification2: object = Field(...)
