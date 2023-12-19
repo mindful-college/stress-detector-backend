@@ -3,8 +3,10 @@ from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
 import os
 import redis
+import certifi
 
 load_dotenv()
+ca = certifi.where()
 
 DB_CONNECTION_URI = os.getenv("DB_CONNECTION_URI")
 DB_NAME = os.getenv("DB_NAME")
@@ -12,7 +14,7 @@ REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
-client = MongoClient(DB_CONNECTION_URI, server_api=ServerApi('1'))
+client = MongoClient(DB_CONNECTION_URI, server_api=ServerApi('1'), tlsCAFile=ca)
 db = client[DB_NAME]
 redis_client = redis.Redis(
   host=REDIS_HOST,
