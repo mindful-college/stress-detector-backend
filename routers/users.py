@@ -127,6 +127,7 @@ async def sign_up(
         "name" : sign_up_user["name"],
         "uuid" : sign_up_user["uuid"],
         "disabled" : False,
+        "points" : 0,
         "is_first_login" : True,
     }
     user_collection.insert_one(processed_user)
@@ -188,4 +189,4 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     print(user)
     if user is None or user["disabled"] is True:
         raise credentials_exception
-    return {"username": user['name']}
+    return {"name": user['name'], "points":user['points']}
