@@ -38,7 +38,7 @@ async def test(token: Annotated[str, Depends(oauth2_scheme)], permission_type: s
 
     result = setting_collection.update_one({"email" : email},{"$set":{permission_type:permission}})
 
-    return {"test": "hello"}
+    return {permission_type: permission}
 
 @router.get("/settings/permissions")
 async def test(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -57,5 +57,5 @@ async def test(token: Annotated[str, Depends(oauth2_scheme)]):
         raise credentials_exception
     result = setting_collection.find_one({"email" : email})
     print(result)
-    return {"step_count": result["step_count"],"heart_rate": result["heart_rate"], 
-        "sleep_hours":result["sleep_hours"], "notification":result["notification"]}
+    return {"Step Count": result["step_count"],"Heart Rate": result["heart_rate"], 
+        "Sleep Hours":result["sleep_hours"], "Notification":result["notification"]}
