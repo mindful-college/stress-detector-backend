@@ -127,6 +127,7 @@ async def sign_up(
         "name" : sign_up_user["name"],
         "uuid" : sign_up_user["uuid"],
         "disabled" : False,
+        "points" : 0,
         "is_first_login" : True,
     }
     user_collection.insert_one(processed_user)
@@ -167,3 +168,51 @@ async def expire_token(token: Annotated[str, Depends(oauth2_scheme)]):
     if not verify_token(token):
         return
     # do something
+
+
+@router.get("/v1/userinfo", tags=["users"])
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        # token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    user = user_collection.find_one({"email" : email})
+    print(user)
+    if user is None or user["disabled"] is True:
+        raise credentials_exception
+    return {"name": user['name'], "points":user['points']}
+
+
+@router.post("/v1/userinfo", tags=["users"])
+async def update_current_user(token: Annotated[str, Depends(oauth2_scheme)], new_name: str):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        # token_data = TokenData(username=username)
+    except JWTError:
+        raise credentials_exception
+    
+    if new_name is None:
+        raise credentials_exception
+
+    result = user_collection.update_one({"email" : email},{"$set":{"name":new_name}})
+   
+   
+    return {"new_name":new_name}
+

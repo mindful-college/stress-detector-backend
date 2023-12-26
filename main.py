@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
-from routers import users
+from routers import users, settings
 
 app = FastAPI()
 
@@ -21,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(users.router)
+app.include_router(settings.router)
 
 @app.get("/")
 async def root():
