@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from schemas.contactus import ContactUsSchema
 import os
 from database import db, redis_client
 
@@ -13,6 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 user_collection = db.get_collection("user")
 setting_collection = db.get_collection("setting")
+contact_us_collection = db.get_collection("contact_us")
 
 ALGORITHM = os.getenv("ALGORITHM")
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -59,3 +61,26 @@ async def test(token: Annotated[str, Depends(oauth2_scheme)]):
     print(result)
     return {"Step Count": result["step_count"],"Heart Rate": result["heart_rate"], 
         "Sleep Hours":result["sleep_hours"], "Notification":result["notification"]}
+
+
+
+@router.post("/settings/contact-us", status_code=status.HTTP_201_CREATED)
+async def create_contact_us(contact_us: ContactUsSchema,token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    contact_us_data = contact_us.dict()
+    contact_us_data["email"] = email
+    contact_us_collection.insert_one(contact_us_data)
+
+    return {"message" : "YOUR CONTACT REQUEST HAS BEEN SUBMITTED SUCCESSFULLY"}
