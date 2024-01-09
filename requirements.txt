@@ -12,4 +12,4 @@ email-validator==2.1.0.post1
 pymongo==4.6.1
 python-multipart==0.0.6
 gunicorn==21.2.0
-
+certifi==2023.5.7
