@@ -20,7 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 user_collection = db.get_collection("user")
 
 
-def verify_token(token: Annotated[str, Depends(oauth2_scheme)]) -> bool:
+def verify_token(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -44,6 +44,6 @@ def verify_token(token: Annotated[str, Depends(oauth2_scheme)]) -> bool:
     if user is None or user["disabled"] is True:
         raise credentials_exception
     
-    return True
+    return email
 
         

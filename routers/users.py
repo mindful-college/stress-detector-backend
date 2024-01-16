@@ -138,21 +138,6 @@ async def sign_up(
         "sleep_hours": False,
         "heart_rate": False,
         "notification": False,
-        "notification1": {
-            "isOn" : False,
-            "hours" : 0,
-            "minutes" : 0,
-        },
-        "notification2": {
-            "isOn" : False,
-            "hours" : 0,
-            "minutes" : 0,
-        },
-        "notification3": {
-            "isOn" : False,
-            "hours" : 0,
-            "minutes" : 0,
-        },
     }
     setting_collection.insert_one(default_setting)
 
