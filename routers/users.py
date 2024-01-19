@@ -136,9 +136,11 @@ async def sign_up(
         "email": sign_up_user["email"],
         "step_count": False,
         "sleep_hours": False,
+        "social_media_usage": False,
         "heart_rate": False,
         "notification": False,
     }
+
     setting_collection.insert_one(default_setting)
 
 
