@@ -38,7 +38,10 @@ async def test(token: Annotated[str, Depends(oauth2_scheme)], permission_type: s
 
     result = setting_collection.update_one({"email" : email},{"$set":{permission_type:permission}})
 
-    return {permission_type: permission}
+    new_result = setting_collection.find_one({"email" : email})
+
+    return {"stepCounts": new_result["step_count"], "sleepHours":new_result["sleep_hours"],
+        "heartRate": new_result["heart_rate"], "socialMediaUsage": new_result["social_media_usage"], "notification":new_result["notification"]}
 
 @router.get("/settings/permissions")
 async def test(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -56,6 +59,6 @@ async def test(token: Annotated[str, Depends(oauth2_scheme)]):
     except JWTError:
         raise credentials_exception
     result = setting_collection.find_one({"email" : email})
-    print(result)
-    return {"Step Count": result["step_count"],"Heart Rate": result["heart_rate"], 
-        "Sleep Hours":result["sleep_hours"], "Notification":result["notification"]}
+
+    return {"stepCounts": result["step_count"], "sleepHours":result["sleep_hours"],
+        "heartRate": result["heart_rate"], "socialMediaUsage": result["social_media_usage"], "notification":result["notification"]}
