@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 from routers import users, settings, analyses
-from routers import users, checkin
+from routers import users, checkin, report
+
 
 app = FastAPI()
 
@@ -25,6 +26,7 @@ app.include_router(users.router)
 app.include_router(settings.router)
 app.include_router(checkin.router)
 app.include_router(analyses.router)
+app.include_router(report.router)
 
 @app.get("/")
 async def root():

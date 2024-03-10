@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt
+from jose import jwt, JWTError
 from pydantic import BaseModel
 from passlib.context import CryptContext
 
@@ -43,6 +43,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app = FastAPI()
 user_collection = db.get_collection("user")
 setting_collection = db.get_collection("setting")
+contact_us_collection = db.get_collection("contact_us")
+checkin_collection = db.get_collection("checkin")
+report_collection = db.get_collection("report")
+user_health_collection= db.get_collection("user_health")
 
 def verify_password(plain_password, hashed_password) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -202,4 +206,38 @@ async def update_current_user(token: Annotated[str, Depends(oauth2_scheme)], new
    
    
     return {"new_name":new_name}
+
+
+
+@router.delete("/v1/delete_user", status_code=status.HTTP_200_OK, tags=["users"])
+async def delete_user_info(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    # Remove user data from all collections first
+    contact_us_collection.delete_many({'email': email})
+    checkin_collection.delete_many({'email': email})
+    report_collection.delete_many({'email': email})
+    user_health_collection.delete_many({'email': email})
+    setting_collection.delete_one({"email": email})
+
+    # Remove actual user Account 
+    user_collection.delete_one({'email': email})
+
+    # add token on the blacklist
+    token_key = 'jwt_blacklist_' + token
+    redis_client.set(token_key, 'true', ex=2592000)
+    
+
+    return {"message": "Account deleted successfully"}
 
