@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from schemas import checkin
 from common.token import verify_token
 from database import db
+import numpy as np
 
 app = FastAPI()
 router = APIRouter()
@@ -18,6 +19,7 @@ report_collection = db.get_collection("report")
 async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     email = verify_token(token)
     dt = datetime.now()
+    days_count = 0
     count = 0
     result = checkin_collection.find({"email" : email},{'_id':False}).sort('date')
     checkin_list = list()
@@ -25,6 +27,7 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         data['day'] = data['date'].weekday()
         if(len(checkin_list)<1):
             checkin_list.append(data)
+            days_count = days_count +1
         else:
             dday = (data['date']-dt).days
             if(dday == 0):
@@ -39,23 +42,25 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
             else:
                 for count_day in range(1,dday):
                     no_data = {
-                        'email': 'Test123@test.com', 
-                        'date': dt + timedelta(days=count_day), 
-                        'study_hours': 0, 
-                        'work_hours': 0, 
-                        'step_count': None, 
-                        'sleep_hours': 0, 
-                        'heart_rate': 0, 
-                        'social_media_usage': 0, 
+                        'email': 'Test123@test.com',
+                        'date': dt + timedelta(days=count_day),
+                        'study_hours': 0,
+                        'work_hours': 0,
+                        'step_count': 0,
+                        'sleep_hours': 0,
+                        'heart_rate': 0,
+                        'social_media_usage': 0,
                         'stress_level': 0
                     }
                     no_data['day'] = no_data['date'].weekday()
                     checkin_list.append(no_data)
                 count = 0
                 checkin_list.append(data)
+                days_count = days_count +1
         count = count + 1
         dt = data['date']
 
+    
     date = list()
     study_hours = list()
     work_hours = list()
@@ -65,6 +70,7 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     social_media_usage = list()
     stress_level = list()
     days = list()
+
 
     for data in checkin_list:
         date.append(data['date'])
@@ -76,16 +82,68 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         social_media_usage.append(data['social_media_usage'])
         stress_level.append(data['stress_level'])
         days.append(data['day'])
-    # print(checkin_list)
-    return {'study_hours': study_hours, 'date': date, 'work_hours':work_hours, 'sleep_hours':sleep_hours, 'heart_rate':heart_rate, 'social_media_usage':social_media_usage,
-            'stress_level': stress_level, 'step_count':step_count,'days':days}
+
+    study_hours = np.round(study_hours, 2).tolist()
+    work_hours = np.round(work_hours, 2).tolist()
+    step_count = np.round(step_count, 2).tolist()
+    sleep_hours = np.round(sleep_hours, 2).tolist()
+    social_media_usage = np.round(social_media_usage, 2).tolist()
+    stress_level = np.round(stress_level, 2).tolist()
+    heart_rate = np.round(heart_rate, 2).tolist()
+
+    day_list = ["Sun", "Mon", "Tue", "Wen", "Thur", "Fri", "Sat"]
+    for i in range(len(days)):
+        days[i]= day_list[days[i]]
+
+    new_date = list()
+    new_study_hours = list()
+    new_work_hours = list()
+    new_step_count = list()
+    new_sleep_hours = list()
+    new_heart_rate = list()
+    new_social_media_usage = list()
+    new_stress_level = list()
+    new_days = list()
+
+    num = len(date)%7
+    length = 7
+
+    if len(days)//length == 0 or num != 0:
+        new_date.append(date[0:num])
+        new_study_hours.append(study_hours[0:num])
+        new_work_hours.append(work_hours[0:num])
+        new_step_count.append(step_count[0:num])
+        new_sleep_hours.append(sleep_hours[0:num])
+        new_heart_rate.append(heart_rate[0:num])
+        new_social_media_usage.append(social_media_usage[0:num])
+        new_stress_level.append(stress_level[0:num])
+        new_days.append(days[0:num])
+    for i in range(len(date)//7):
+        new_date.append(date[num+i*length:num+length+i*length])
+        new_study_hours.append(study_hours[num+i*length:num+length+i*length])
+        new_work_hours.append(work_hours[num+i*length:num+length+i*length])
+        new_step_count.append(step_count[num+i*length:num+length+i*length])
+        new_sleep_hours.append(sleep_hours[num+i*length:num+length+i*length])
+        new_heart_rate.append(heart_rate[num+i*length:num+length+i*length])
+        new_social_media_usage.append(social_media_usage[num+i*length:num+length+i*length])
+        new_stress_level.append(stress_level[num+i*length:num+length+i*length])
+        new_days.append(days[num+i*length:num+length+i*length])
+    print(new_days)
+    return {'study_hours': new_study_hours, 'date': new_date, 'work_hours':new_work_hours, 'sleep_hours':new_sleep_hours, 'heart_rate':new_heart_rate, 'social_media_usage':new_social_media_usage,
+            'stress_level': new_stress_level, 'step_count':new_step_count,'days':new_days, 'days_count':days_count}
 
 
 
 @router.get("/analyses/data/monthly")
 async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     email = verify_token(token)
+
     pipeline = [
+        {
+        "$match": {
+            "email": email
+        }
+    },
         {
         "$project": {
             "email": 1,
@@ -124,8 +182,10 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     }
     ]
     results = checkin_collection.aggregate(pipeline)
+   
+
     checkin_list = list(results)
-    print(checkin_list)
+
     years = list()
     months = list()
     study_hours = list()
@@ -137,6 +197,7 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     heart_rate = list()
     year = -1
     month = -1
+
     for data in checkin_list:
         if(year<0):
             year = data['_id']['year']
@@ -167,6 +228,52 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         year = year + ( month // 12 )
         month = ( month % 12 ) + 1
 
-            
-    return {'study_hours': study_hours, 'work_hours':work_hours, 'sleep_hours':sleep_hours, 'heart_rate':heart_rate, 'social_media_usage':social_media_usage,
-            'stress_level': stress_level, 'step_count':step_count, 'years': years, 'months': months}
+
+    study_hours = np.round(study_hours, 2).tolist()
+    work_hours = np.round(work_hours, 2).tolist()
+    step_count = np.round(step_count, 2).tolist()
+    sleep_hours = np.round(sleep_hours, 2).tolist()
+    social_media_usage = np.round(social_media_usage, 2).tolist()
+    stress_level = np.round(stress_level, 2).tolist()
+    heart_rate = np.round(heart_rate, 2).tolist()
+    month_list = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    for i in range(len(months)):
+        months[i] = month_list[months[i]-1]
+
+    new_years = list()
+    new_study_hours = list()
+    new_work_hours = list()
+    new_step_count = list()
+    new_sleep_hours = list()
+    new_heart_rate = list()
+    new_social_media_usage = list()
+    new_stress_level = list()
+    new_months = list()
+
+    length = 6
+    num = len(years)%length
+
+    if len(years)//length == 0 or num != 0:
+        new_years.append(years[0:num])
+        new_study_hours.append(study_hours[0:num])
+        new_work_hours.append(work_hours[0:num])
+        new_step_count.append(step_count[0:num])
+        new_sleep_hours.append(sleep_hours[0:num])
+        new_heart_rate.append(heart_rate[0:num])
+        new_social_media_usage.append(social_media_usage[0:num])
+        new_stress_level.append(stress_level[0:num])
+        new_months.append(months[0:num])
+
+    for i in range(len(years)//6):
+        new_years.append(years[num+i*length:num+length+i*length])
+        new_study_hours.append(study_hours[num+i*length:num+length+i*length])
+        new_work_hours.append(work_hours[num+i*length:num+length+i*length])
+        new_step_count.append(step_count[num+i*length:num+length+i*length])
+        new_sleep_hours.append(sleep_hours[num+i*length:num+length+i*length])
+        new_heart_rate.append(heart_rate[num+i*length:num+length+i*length])
+        new_social_media_usage.append(social_media_usage[num+i*length:num+length+i*length])
+        new_stress_level.append(stress_level[num+i*length:num+length+i*length])
+        new_months.append(monthss[num+i*length:num+length+i*length])
+
+    return {'study_hours': new_study_hours, 'work_hours':new_work_hours, 'sleep_hours':new_sleep_hours, 'heart_rate':new_heart_rate, 'social_media_usage':new_social_media_usage,
+            'stress_level': new_stress_level, 'step_count':new_step_count, 'years': new_years, 'months': new_months, 'month_count': len(checkin_list)}
