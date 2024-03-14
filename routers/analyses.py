@@ -30,7 +30,7 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
             days_count = days_count +1
         else:
             dday = (data['date']-dt).days
-            if(dday == 0):
+            if(dday == 0 and len(checkin_list) > 0):
                 checkin_list[-1]['study_hours'] = ( checkin_list[-1]['study_hours'] * count + data['study_hours'] ) / ( count + 1 )
                 checkin_list[-1]['work_hours'] = ( checkin_list[-1]['work_hours'] * count + data['work_hours'] ) / ( count + 1 )
                 checkin_list[-1]['step_count'] = ( checkin_list[-1]['step_count'] * count + data['step_count'] ) / ( count + 1 )
