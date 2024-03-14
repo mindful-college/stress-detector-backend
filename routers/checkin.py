@@ -24,6 +24,7 @@ class CheckInData(BaseModel):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 checkin_collection = db.get_collection("checkin")
 report_collection = db.get_collection("report")
+user_collection = db.get_collection("user")
 
 @router.post("/v1/checkin", tags=["checkin"])
 async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request: Request):
@@ -56,6 +57,8 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
             "stress_level": user_input["stress_level"],
         }
         report_collection.insert_one(report_data)
+        user = user_collection.find_one({"email" : email})
+        user_collection.update_one({"email" : email},{"$set":{"points": user["points"] + 100}})
         
     
 
