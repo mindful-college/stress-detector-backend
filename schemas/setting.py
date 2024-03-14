@@ -14,9 +14,6 @@ class SettingSchema(BaseModel):
     heart_rate: bool = Field(...)
     social_media_usage: bool = Field(...)
     notification: bool = Field(...)
-    notification1: object = Field(...)
-    notification2: object = Field(...)
-    notification3: object = Field(...)
     
     class Config:
         json_schema_extra = {
@@ -26,20 +23,5 @@ class SettingSchema(BaseModel):
                 "sleep_hours": True,
                 "heart_rate": False,
                 "notification": True,
-                "notification1": {
-                    "isOn" : False,
-                    "hours" : 0, # UTC 0~23
-                    "minutes" : 0, # 0, 15, 30, 45
-                },
-                "notification2": {
-                    "isOn" : False,
-                    "hours" : 8, # UTC 0~23
-                    "minutes" : 15, # 0, 15, 30, 45
-                },
-                "notification3": {
-                    "isOn" : True,
-                    "hours" : 16, # UTC 0~23
-                    "minutes" : 30, # 0, 15, 30, 45
-                },
             }
         }
