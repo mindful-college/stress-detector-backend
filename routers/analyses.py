@@ -18,48 +18,93 @@ report_collection = db.get_collection("report")
 @router.get("/analyses/data/weekly")
 async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     email = verify_token(token)
+
+    pipeline = [
+        {
+            "$match": {
+                "email": email  # Assuming 'email' variable is defined elsewhere
+            }
+        },
+        {
+            "$project": {
+                "email": 1,
+                "date": {
+                    "$dateFromParts": {
+                        "year": {"$year": "$date"},
+                        "month": {"$month": "$date"},
+                        "day": {"$dayOfMonth": "$date"}
+                    }
+                },
+                "study_hours": 1,
+                "work_hours": 1,
+                "sleep_hours": 1,
+                "social_media_usage": 1,
+                "stress_level": 1,
+                "step_count": 1,
+                "heart_rate": 1
+                
+            }
+        },
+        {
+            "$group": {
+               "_id": {
+                    "email": "$email",
+                    "date": "$date"
+                },
+                "study_hours": {"$avg": "$study_hours"},
+                "work_hours": {"$avg": "$work_hours"},
+                "sleep_hours": {"$avg": "$sleep_hours"},
+                "social_media_usage": {"$avg": "$social_media_usage"},
+                "stress_level": {"$avg": "$stress_level"},
+                "step_count": {"$avg": "$step_count"},
+                "heart_rate": {"$avg": "$heart_rate"}
+            }
+        },
+        {
+            "$sort": {
+                "_id.date": 1
+            }
+        }
+    ]
+    results = checkin_collection.aggregate(pipeline)
     dt = datetime.now()
     days_count = 0
     count = 0
+    # for data in results:
+    #     print(data)
+    # print(results)
     result = checkin_collection.find({"email" : email},{'_id':False}).sort('date')
     checkin_list = list()
-    for data in result:
-        data['day'] = data['date'].weekday()
+
+    
+    for data in results:
+        data['day'] = data['_id']['date'].weekday()
         if(len(checkin_list)<1):
+            data['date'] = data['_id']['date']
             checkin_list.append(data)
             days_count = days_count +1
         else:
-            dday = (data['date']-dt).days
-            if(dday == 0):
-                checkin_list[-1]['study_hours'] = ( checkin_list[-1]['study_hours'] * count + data['study_hours'] ) / ( count + 1 )
-                checkin_list[-1]['work_hours'] = ( checkin_list[-1]['work_hours'] * count + data['work_hours'] ) / ( count + 1 )
-                checkin_list[-1]['step_count'] = ( checkin_list[-1]['step_count'] * count + data['step_count'] ) / ( count + 1 )
-                checkin_list[-1]['sleep_hours'] = ( checkin_list[-1]['sleep_hours'] * count + data['sleep_hours'] ) / ( count + 1 )
-                checkin_list[-1]['heart_rate'] = ( checkin_list[-1]['heart_rate'] * count + data['heart_rate'] ) / ( count + 1 )
-                checkin_list[-1]['social_media_usage'] = ( checkin_list[-1]['social_media_usage'] * count + data['social_media_usage'] ) / ( count + 1 )
-                checkin_list[-1]['stress_level'] = ( checkin_list[-1]['stress_level'] * count + data['stress_level'] ) / ( count + 1 )
-
-            else:
-                for count_day in range(1,dday):
-                    no_data = {
-                        'email': 'Test123@test.com',
-                        'date': dt + timedelta(days=count_day),
-                        'study_hours': 0,
-                        'work_hours': 0,
-                        'step_count': 0,
-                        'sleep_hours': 0,
-                        'heart_rate': 0,
-                        'social_media_usage': 0,
-                        'stress_level': 0
-                    }
-                    no_data['day'] = no_data['date'].weekday()
-                    checkin_list.append(no_data)
-                count = 0
-                checkin_list.append(data)
-                days_count = days_count +1
+            dday = (data['_id']['date']-dt).days
+            for count_day in range(1,dday):
+                no_data = {
+                    'email': 'Test123@test.com',
+                    'date': dt + timedelta(days=count_day),
+                    'study_hours': 0,
+                    'work_hours': 0,
+                    'step_count': 0,
+                    'sleep_hours': 0,
+                    'heart_rate': 0,
+                    'social_media_usage': 0,
+                    'stress_level': 0
+                }
+                no_data['day'] = no_data['date'].weekday()
+                checkin_list.append(no_data)
+            count = 0
+            data['date'] = data['_id']['date']
+            checkin_list.append(data)
+            days_count = days_count +1
         count = count + 1
         dt = data['date']
-
     
     date = list()
     study_hours = list()
@@ -128,7 +173,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         new_social_media_usage.append(social_media_usage[num+i*length:num+length+i*length])
         new_stress_level.append(stress_level[num+i*length:num+length+i*length])
         new_days.append(days[num+i*length:num+length+i*length])
-    print(new_days)
     return {'study_hours': new_study_hours, 'date': new_date, 'work_hours':new_work_hours, 'sleep_hours':new_sleep_hours, 'heart_rate':new_heart_rate, 'social_media_usage':new_social_media_usage,
             'stress_level': new_stress_level, 'step_count':new_step_count,'days':new_days, 'days_count':days_count}
 
