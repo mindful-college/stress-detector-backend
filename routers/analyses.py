@@ -66,17 +66,14 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
             }
         }
     ]
+
     results = checkin_collection.aggregate(pipeline)
     dt = datetime.now()
     days_count = 0
     count = 0
-    # for data in results:
-    #     print(data)
-    # print(results)
-    result = checkin_collection.find({"email" : email},{'_id':False}).sort('date')
+  
     checkin_list = list()
 
-    
     for data in results:
         data['day'] = data['_id']['date'].weekday()
         if(len(checkin_list)<1):
