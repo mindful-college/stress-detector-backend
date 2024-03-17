@@ -59,6 +59,34 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
         report_collection.insert_one(report_data)
         user = user_collection.find_one({"email" : email})
         user_collection.update_one({"email" : email},{"$set":{"points": user["points"] + 100}})
-        
-    
 
+@router.get("/v1/average", tags=["checkin"])
+async def get_average(token: Annotated[str, Depends(oauth2_scheme)]):
+    email = verify_token(token)
+    if email:
+        pipeline = [
+            {"$match": {"email": "jiji1@test.com"}},
+            {"$group": 
+                {
+                "_id": None, 
+                "avg_sleep_hours": { "$avg": "$sleep_hours" },
+                "avg_study_hours": { "$avg": "$study_hours" },
+                "avg_work_hours": { "$avg": "$work_hours" },
+                "avg_step_count": { "$avg": "$step_count" },
+                "avg_heart_rate": { "$avg": "$heart_rate" },
+                "avg_social_media_usage": { "$avg": "$social_media_usage" }
+                }
+            }
+        ]
+        avgResult = list(checkin_collection.aggregate(pipeline))
+        print(avgResult)
+        if len(avgResult) > 0:
+            return {
+                "stepCounts" : avgResult[0]["avg_step_count"] or 6000,
+                "sleepHours" : avgResult[0]["avg_sleep_hours"] or 8,
+                "studyHours" : avgResult[0]["avg_study_hours"] or 5,
+                "workHours" : avgResult[0]["avg_work_hours"] or 4,
+                "heartRate" : avgResult[0]["avg_heart_rate"] or 80,
+                "socialMediaUsage" : avgResult[0]["avg_social_media_usage"] or 3,
+            }
+        
