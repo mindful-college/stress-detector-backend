@@ -10,6 +10,8 @@ class ReportSchema(BaseModel):
     id: Optional[PyObjectId] 
     email: EmailStr = Field(...)
     date: datetime = Field(...)
+    self_stress_level: int = Field(...)
+    chat: list[str] = Field(...)
     summary: object = Field(...)
     stress_level: int = Field(...)
 
@@ -18,6 +20,8 @@ class ReportSchema(BaseModel):
             "example": {
                 "email": "jiji@example.com",
                 "date": "2024-01-05 07:30:56",
+                "chat" : ["chat1", "chat2"],
+                "self_stress_level": 1.5,
                 "summary": {
                     "text" : ["happy", "good"],
                     "voice" : ["high tone", "relaxed voice"]
