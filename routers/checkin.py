@@ -116,7 +116,7 @@ async def get_average(token: Annotated[str, Depends(oauth2_scheme)]):
     email = verify_token(token)
     if email:
         pipeline = [
-            {"$match": {"email": "jiji1@test.com"}},
+            {"$match": {"email": email}},
             {"$group": 
                 {
                 "_id": None, 
@@ -130,7 +130,6 @@ async def get_average(token: Annotated[str, Depends(oauth2_scheme)]):
             }
         ]
         avgResult = list(checkin_collection.aggregate(pipeline))
-        print(avgResult)
         if len(avgResult) > 0:
             return {
                 "stepCounts" : avgResult[0]["avg_step_count"] or 6000,

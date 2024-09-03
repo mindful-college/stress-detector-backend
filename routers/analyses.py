@@ -39,10 +39,8 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
                 "work_hours": 1,
                 "sleep_hours": 1,
                 "social_media_usage": 1,
-                "stress_level": 1,
                 "step_count": 1,
-                "heart_rate": 1
-                
+                "heart_rate": 1    
             }
         },
         {
@@ -55,7 +53,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
                 "work_hours": {"$avg": "$work_hours"},
                 "sleep_hours": {"$avg": "$sleep_hours"},
                 "social_media_usage": {"$avg": "$social_media_usage"},
-                "stress_level": {"$avg": "$stress_level"},
                 "step_count": {"$avg": "$step_count"},
                 "heart_rate": {"$avg": "$heart_rate"}
             }
@@ -68,6 +65,8 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     ]
 
     results = checkin_collection.aggregate(pipeline)
+    for data in results:
+        print(data)
     dt = datetime.now()
     days_count = 0
     count = 0
@@ -92,7 +91,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
                     'sleep_hours': 0,
                     'heart_rate': 0,
                     'social_media_usage': 0,
-                    'stress_level': 0
                 }
                 no_data['day'] = no_data['date'].weekday()
                 checkin_list.append(no_data)
@@ -122,7 +120,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         sleep_hours.append(data['sleep_hours'])
         heart_rate.append(data['heart_rate'])
         social_media_usage.append(data['social_media_usage'])
-        stress_level.append(data['stress_level'])
         days.append(data['day'])
 
     study_hours = np.round(study_hours, 2).tolist()
@@ -158,7 +155,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         new_sleep_hours.append(sleep_hours[0:num])
         new_heart_rate.append(heart_rate[0:num])
         new_social_media_usage.append(social_media_usage[0:num])
-        new_stress_level.append(stress_level[0:num])
         new_days.append(days[0:num])
     for i in range(len(date)//7):
         new_date.append(date[num+i*length:num+length+i*length])
@@ -168,7 +164,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         new_sleep_hours.append(sleep_hours[num+i*length:num+length+i*length])
         new_heart_rate.append(heart_rate[num+i*length:num+length+i*length])
         new_social_media_usage.append(social_media_usage[num+i*length:num+length+i*length])
-        new_stress_level.append(stress_level[num+i*length:num+length+i*length])
         new_days.append(days[num+i*length:num+length+i*length])
     return {'study_hours': new_study_hours, 'date': new_date, 'work_hours':new_work_hours, 'sleep_hours':new_sleep_hours, 'heart_rate':new_heart_rate, 'social_media_usage':new_social_media_usage,
             'stress_level': new_stress_level, 'step_count':new_step_count,'days':new_days, 'days_count':days_count}
@@ -194,7 +189,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
             "work_hours": 1,
             "sleep_hours": 1,
             "social_media_usage": 1,
-            "stress_level": 1,
             "step_count": 1,
             "heart_rate": 1
         }
@@ -210,7 +204,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
             "average_work_hours": {"$avg": "$work_hours"},
             "average_sleep_hours": {"$avg": "$sleep_hours"},
             "average_social_media_usage": {"$avg": "$social_media_usage"},
-            "average_stress_level": {"$avg": "$stress_level"},
             "average_step_count": {"$avg": "$step_count"},
             "average_heart_rate": {"$avg": "$heart_rate"}
         }
@@ -250,7 +243,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
             work_hours.append(0)
             sleep_hours.append(0)
             social_media_usage.append(0)
-            stress_level.append(0)
             step_count.append(0)
             heart_rate.append(0)
             year = year + ( month // 12 )
@@ -263,7 +255,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         work_hours.append(data['average_work_hours'])
         sleep_hours.append(data['average_sleep_hours'])
         social_media_usage.append(data['average_social_media_usage'])
-        stress_level.append(data['average_stress_level'])
         step_count.append(data['average_step_count'])
         heart_rate.append(data['average_heart_rate'])
         year = year + ( month // 12 )
@@ -275,7 +266,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     step_count = np.round(step_count, 2).tolist()
     sleep_hours = np.round(sleep_hours, 2).tolist()
     social_media_usage = np.round(social_media_usage, 2).tolist()
-    stress_level = np.round(stress_level, 2).tolist()
     heart_rate = np.round(heart_rate, 2).tolist()
     month_list = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec"]
     for i in range(len(months)):
@@ -288,7 +278,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
     new_sleep_hours = list()
     new_heart_rate = list()
     new_social_media_usage = list()
-    new_stress_level = list()
     new_months = list()
 
     length = 6
@@ -302,7 +291,6 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         new_sleep_hours.append(sleep_hours[0:num])
         new_heart_rate.append(heart_rate[0:num])
         new_social_media_usage.append(social_media_usage[0:num])
-        new_stress_level.append(stress_level[0:num])
         new_months.append(months[0:num])
 
     for i in range(len(years)//6):
@@ -313,8 +301,56 @@ async def get_checkin_data(token: Annotated[str, Depends(oauth2_scheme)]):
         new_sleep_hours.append(sleep_hours[num+i*length:num+length+i*length])
         new_heart_rate.append(heart_rate[num+i*length:num+length+i*length])
         new_social_media_usage.append(social_media_usage[num+i*length:num+length+i*length])
-        new_stress_level.append(stress_level[num+i*length:num+length+i*length])
-        new_months.append(monthss[num+i*length:num+length+i*length])
+        new_months.append(months[num+i*length:num+length+i*length])
 
     return {'study_hours': new_study_hours, 'work_hours':new_work_hours, 'sleep_hours':new_sleep_hours, 'heart_rate':new_heart_rate, 'social_media_usage':new_social_media_usage,
-            'stress_level': new_stress_level, 'step_count':new_step_count, 'years': new_years, 'months': new_months, 'month_count': len(checkin_list)}
+            'stress_level': [], 'step_count':new_step_count, 'years': new_years, 'months': new_months, 'month_count': len(checkin_list)}
+
+
+@router.get("/v1/analyses")
+async def get_analyses(token: Annotated[str, Depends(oauth2_scheme)]):
+    email = verify_token(token)
+    if email:
+        reportPipeline = [
+            {"$match": {"email": email}},
+            {"$group": {
+                "_id":{"$dateToString":{"format": "%Y-%m-%d", "date": "$date"}},
+                "sleep_hours": { "$avg": "$sleep_hours" },
+                "study_hours": { "$avg": "$study_hours" },
+                "work_hours": { "$avg": "$work_hours" },
+                "step_count": { "$avg": "$step_count" },
+                "heart_rate": { "$avg": "$heart_rate" },
+                "social_media_usage": { "$avg": "$social_media_usage" }
+            }},
+            {"$sort": {"_id": 1}}  # Optionally, sort by date
+        ]
+        report = list(checkin_collection.aggregate(reportPipeline))
+    
+        collerationPipeline = [
+            {"$match": {"email": email}},
+            {"$group": {
+                "_id": "$stress_level",
+                "stress_level": { "$avg": "$stress_level" },
+                "sleep_hours": { "$avg": "$sleep_hours" },
+                "study_hours": { "$avg": "$study_hours" },
+                "work_hours": { "$avg": "$work_hours" },
+                "step_count": { "$avg": "$step_count" },
+                "heart_rate": { "$avg": "$heart_rate" },
+                "social_media_usage": { "$avg": "$social_media_usage" }
+            }},
+            {"$sort": {"_id": 1}}  # Optionally, sort by date
+        ]
+        colleration= list(checkin_collection.aggregate(collerationPipeline))
+        
+        stressLevelPipeline = [
+            {"$match": {"email": email}},
+            {"$group": {
+                "_id":{"$dateToString":{"format": "%Y-%m-%d", "date": "$date"}},
+                "stress_level": { "$avg": "$stress_level" },
+            }},
+            {"$sort": {"_id": 1}}  # Optionally, sort by date
+        ]
+        stress_level = list(report_collection.aggregate(stressLevelPipeline))
+
+        return {'report': report, 'stress_level': stress_level, 'colleration': colleration}
+

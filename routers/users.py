@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import os
 from fastapi import APIRouter, Request
 from schemas import user
-from database import db, redis_client
+from database import db
 from common.token import verify_token
 
 load_dotenv()
@@ -150,8 +150,7 @@ async def sign_up(
 
 @router.post("/v1/signout", tags=["users"])
 async def expire_token(token: Annotated[str, Depends(oauth2_scheme)]):
-    token_key = 'jwt_blacklist_' + token
-    redis_client.set(token_key, token, ex=2592000)
+    print("signout")
 
 
 @router.post("/v1/me", tags=["users"])

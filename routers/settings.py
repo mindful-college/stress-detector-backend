@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from schemas.contactus import ContactUsSchema
 import os
-from database import db, redis_client
+from database import db
 
 router = APIRouter(tags=["items"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

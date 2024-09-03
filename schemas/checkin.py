@@ -15,7 +15,6 @@ class CheckinSchema(BaseModel):
     sleep_hours: Union[float, None] = Field(...)
     heart_rate: Union[float, None] = Field(...)
     social_media_usage: Union[float, None] = Field(...)
-    stress_level: int = Field(...)
 
     class Config:
         json_schema_extra = {
@@ -28,6 +27,5 @@ class CheckinSchema(BaseModel):
                 "sleep_hours" : 8,
                 "heart_rate" : 180,
                 "social_media_usage" : 3,
-                "stress_level": 1,
             }
         }

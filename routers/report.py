@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from fastapi.encoders import jsonable_encoder
 from datetime import datetime, timedelta
 import os
-from database import db, redis_client
+from database import db
 from datetime import datetime
 
 router = APIRouter(tags=["items"])

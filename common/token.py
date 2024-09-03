@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 from dotenv import load_dotenv
 import os
 from fastapi import APIRouter
-from database import db, redis_client
+from database import db
 
 
 load_dotenv()
@@ -27,11 +27,6 @@ def verify_token(token: Annotated[str, Depends(oauth2_scheme)]) -> str:
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    token_key = 'jwt_blacklist_' + token
-    is_token_in_blacklist = redis_client.get(token_key)
-    if is_token_in_blacklist:
-        raise credentials_exception
-    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
