@@ -60,7 +60,7 @@ async def get_report_data(date_str: str = Query(...), token: str = Depends(oauth
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
         return report_without_id # return data (from email to stress level)
     else:
-        return {"message": "There is no data to report"}
+        return None
     
 
 
@@ -101,4 +101,4 @@ async def get_checkin_data(date_str: str = Query(...), token: str = Depends(oaut
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
         return report_without_id # return data (from email to stress level)
     else:
-        return {"message": "There is no data to report"}   
+        return None   

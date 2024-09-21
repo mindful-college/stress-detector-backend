@@ -47,7 +47,7 @@ openai_input_text = '''
     Here is the output:
     {
     text: ["well", "relaxing", "dinner with family"],
-    stress-level: 3.5
+    stress-level: 2
     }
 
     Please say yes if you understand this
@@ -84,7 +84,7 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
                 "text" : parsed_dict["text"]
             },
             "self_stress_level": user_input["stress_level"],
-            "stress_level": parsed_dict["stress-level"]
+            "stress_level": parsed_dict["stress-level"],
         }
         report_collection.insert_one(report_data)
         user = user_collection.find_one({"email" : email})
@@ -102,10 +102,10 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
             "date": today,
             "study_hours": user_input["study_hours"],
             "work_hours": user_input["work_hours"],
+            "social_media_usage": user_input["social_media_usage"],
             "step_count": user_input["step_count"],
             "sleep_hours": user_input["sleep_hours"],
             "heart_rate": user_input["heart_rate"],
-            "social_media_usage": user_input["social_media_usage"],
         }
         checkin_collection.insert_one(checkin_data)
         user = user_collection.find_one({"email" : email})
