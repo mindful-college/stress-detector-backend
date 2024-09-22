@@ -36,7 +36,7 @@ user_collection = db.get_collection("user")
 openai_input_text = '''
     You are here to predict stress levels based on a few sentences. I will provide you with the sentences and a self-reported stress level (1 to 5, inclusive integer) as input. I want you to give me the predicted stress level (1 to 5, inclusive double) and 2 to 5 most impactful keywords for predictions in order of importance.
 
-    The stress levels are defined as follows: 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High'. Please provide the output in the same format as the input.
+    The stress levels are defined as follows: 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High'. Please provide the output in the same format as the input. The output for stress-level can be float number.
 
     Here is a sample input:
     {
@@ -47,7 +47,7 @@ openai_input_text = '''
     Here is the output:
     {
     text: ["well", "relaxing", "dinner with family"],
-    stress-level: 2
+    stress-level: 2.2
     }
 
     Please say yes if you understand this
@@ -59,7 +59,7 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
     email = verify_token(token)
     
     if email:
-        today = datetime.today().replace(microsecond=0)
+        # today = datetime.today().replace(microsecond=0)
         user_text = '''
         {
             "text": "%s",
@@ -76,9 +76,10 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
         )
         message = response.choices[0].message.content
         parsed_dict = json.loads(message)
+        print(user_input["date"])
         report_data = {
             "email": email,
-            "date": today,
+            "date": user_input["date"],
             "chat": user_input["text"],
             "summary": {
                 "text" : parsed_dict["text"]
@@ -96,10 +97,11 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
     email = verify_token(token)
     
     if email:
-        today = datetime.today().replace(microsecond=0)
+        # today = datetime.today().replace(microsecond=0)
+        print(user_input["date"])
         checkin_data: checkin.CheckinSchema = {
             "email": email,
-            "date": today,
+            "date": user_input["date"],
             "study_hours": user_input["study_hours"],
             "work_hours": user_input["work_hours"],
             "social_media_usage": user_input["social_media_usage"],

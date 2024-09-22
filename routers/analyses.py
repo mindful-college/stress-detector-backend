@@ -325,23 +325,23 @@ async def get_analyses(token: Annotated[str, Depends(oauth2_scheme)]):
             {"$sort": {"_id": 1}}  # Optionally, sort by date
         ]
         report = list(checkin_collection.aggregate(reportPipeline))
-    
-        collerationPipeline = [
-            {"$match": {"email": email}},
-            {"$group": {
-                "_id": "$stress_level",
-                "stress_level": { "$avg": "$stress_level" },
-                "sleep_hours": { "$avg": "$sleep_hours" },
-                "study_hours": { "$avg": "$study_hours" },
-                "work_hours": { "$avg": "$work_hours" },
-                "step_count": { "$avg": "$step_count" },
-                "heart_rate": { "$avg": "$heart_rate" },
-                "social_media_usage": { "$avg": "$social_media_usage" }
-            }},
-            {"$sort": {"_id": 1}}  # Optionally, sort by date
-        ]
-        colleration= list(checkin_collection.aggregate(collerationPipeline))
         
+        # collerationPipeline = [
+        #     {"$match": {"email": email}},
+        #     {"$group": {
+        #         "_id": "$stress_level",
+        #         "stress_level": { "$avg": "$stress_level" },
+        #         "sleep_hours": { "$avg": "$sleep_hours" },
+        #         "study_hours": { "$avg": "$study_hours" },
+        #         "work_hours": { "$avg": "$work_hours" },
+        #         "step_count": { "$avg": "$step_count" },
+        #         "heart_rate": { "$avg": "$heart_rate" },
+        #         "social_media_usage": { "$avg": "$social_media_usage" }
+        #     }},
+        #     {"$sort": {"_id": 1}}  # Optionally, sort by date
+        # ]
+        # colleration= list(checkin_collection.aggregate(collerationPipeline))
+
         stressLevelPipeline = [
             {"$match": {"email": email}},
             {"$group": {
@@ -350,7 +350,9 @@ async def get_analyses(token: Annotated[str, Depends(oauth2_scheme)]):
             }},
             {"$sort": {"_id": 1}}  # Optionally, sort by date
         ]
-        stress_level = list(report_collection.aggregate(stressLevelPipeline))
 
-        return {'report': report, 'stress_level': stress_level, 'colleration': colleration}
+        stress_level = list(report_collection.aggregate(stressLevelPipeline))
+        print(report)
+        print(stress_level)
+        return {'report': report, 'stress_level': stress_level}
 
