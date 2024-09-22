@@ -55,7 +55,8 @@ async def get_report_data(date_str: str = Query(...), token: str = Depends(oauth
     latest_report = report_collection.find_one(
         {"email": email, "date": {"$gte": start_of_day, "$lt": end_of_day}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
     )
-
+    print(email, start_of_day, end_of_day)
+    
     if latest_report:
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
         print(report_without_id)
@@ -93,6 +94,7 @@ async def get_checkin_data(date_str: str = Query(...), token: str = Depends(oaut
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid date format")
     
+    print(email, start_of_day, end_of_day)
     # get the report from report_collection 
     latest_report = checkin_collection.find_one(
         {"email": email, "date": {"$gte": start_of_day, "$lt": end_of_day}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
