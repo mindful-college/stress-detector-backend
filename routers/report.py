@@ -58,6 +58,7 @@ async def get_report_data(date_str: str = Query(...), token: str = Depends(oauth
 
     if latest_report:
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
+        print(report_without_id)
         return report_without_id # return data (from email to stress level)
     else:
         return None
@@ -99,6 +100,7 @@ async def get_checkin_data(date_str: str = Query(...), token: str = Depends(oaut
 
     if latest_report:
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
+        print(report_without_id)
         return report_without_id # return data (from email to stress level)
     else:
         return None   
