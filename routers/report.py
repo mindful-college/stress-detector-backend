@@ -99,7 +99,7 @@ async def get_checkin_data(date_str: str = Query(...), token: str = Depends(oaut
     
     # get the report from report_collection 
     latest_report = checkin_collection.find_one(
-        {"email": email, "date": {"$gte": start_of_day.isoformat(), "$lt": end_of_day.isoformat()}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
+        {"email": email, "date": {"$gte": start_of_day, "$lt": end_of_day}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
     )
     if latest_report:
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
