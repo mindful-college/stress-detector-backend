@@ -54,7 +54,7 @@ async def get_report_data(date_str: str = Query(...), token: str = Depends(oauth
     
     # get the report from report_collection 
     latest_report = report_collection.find_one(
-        {"email": email, "date": {"$gte":  start_of_day.isoformat(), "$lt": end_of_day.isoformat()}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
+        {"email": email, "date": {"$gte":  start_of_day, "$lt": end_of_day}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
     )
 
     if latest_report:
@@ -88,18 +88,19 @@ async def get_checkin_data(date_str: str = Query(...), token: str = Depends(oaut
     # parsing date_str
     
     try:
+        # Create a datetime object from the provided date string
+        report_date = datetime.fromisoformat(date_str)  # Handles ISO 8601 format with timezone
         report_date = datetime.fromisoformat(date_str) # create datetime object
         start_of_day = datetime(report_date.year, report_date.month, report_date.day) # set the start_of_day with the day at 00:00:00 AM
         end_of_day = start_of_day + timedelta(days=1) # set the end_of_day with 00:00:00 (+24hours from start_of_day)
+    
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid date format")
     
-    print(email, start_of_day, end_of_day)
     # get the report from report_collection 
     latest_report = checkin_collection.find_one(
         {"email": email, "date": {"$gte": start_of_day.isoformat(), "$lt": end_of_day.isoformat()}}, sort=[("date", -1)] # sort the date in Descending Order to get the latest data
     )
-
     if latest_report:
         report_without_id = {k: v for k, v in latest_report.items() if k != '_id'} # remove ObjectId part from dictionary
         print(report_without_id)

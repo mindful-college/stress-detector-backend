@@ -76,10 +76,10 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
         )
         message = response.choices[0].message.content
         parsed_dict = json.loads(message)
-        print(user_input["date"])
+        date_obj = datetime.fromisoformat(user_input["date"].replace("Z", "+00:00"))
         report_data = {
             "email": email,
-            "date": user_input["date"],
+            "date": date_obj,
             "chat": user_input["text"],
             "summary": {
                 "text" : parsed_dict["text"]
@@ -98,10 +98,10 @@ async def insert_checkin(token: Annotated[str, Depends(oauth2_scheme)], request:
     
     if email:
         # today = datetime.today().replace(microsecond=0)
-        print(user_input["date"])
+        date_obj = datetime.fromisoformat(user_input["date"].replace("Z", "+00:00"))
         checkin_data: checkin.CheckinSchema = {
             "email": email,
-            "date": user_input["date"],
+            "date": date_obj,
             "study_hours": user_input["study_hours"],
             "work_hours": user_input["work_hours"],
             "social_media_usage": user_input["social_media_usage"],
