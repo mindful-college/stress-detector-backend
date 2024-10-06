@@ -118,10 +118,10 @@ async def sign_up(
     
     uuid_count = user_collection.count_documents({"uuid" : sign_up_user["uuid"]})
     
-    if uuid_count >= 3:
+    if uuid_count >= 10:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="You can make upto 3 accounts with one device",
+            detail="You can make upto 10 accounts with one device",
             headers={"WWW-Authenticate": "Bearer"},
         )
      
